@@ -2,7 +2,7 @@
 
 Tracking: kata `ryxa`, child of `d577`; related deployment issue `9d91`.
 
-**Status:** scope and ownership approach approved; written contract awaiting review before installer implementation. This document records intended behavior, not a claim that the stack has been deployed.
+**Status:** the written contract and installer/configuration implementation were explicitly approved on 2026-10-18. Source implementation and review are in progress in the canonical setup repository; live activation and product-runtime integration remain deferred. Approval is not evidence that the stack has been deployed.
 
 ## Goal and approved scope
 
