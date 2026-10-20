@@ -13,7 +13,7 @@ Applies to both `tools/port/` (Port CIO TUI) and `tools/shingle/` (Shingle brand
 
 ECIC brand tokens map from `packages/design-tokens/src/tokens.css`. Both tools need a `src/palette.rs` that exports these constants. **Every rendering file imports from `palette` — never scatter inline `Color::Rgb(...)` literals.**
 
-**Current reality:** Both tools have `palette.rs` but most render files don't import from it yet. Port has 186 inline `Color::Rgb(...)` calls across 15 files (per the 2026-04-19 design audit — see `docs/archive/2026-10-14/reviews/2026-04-19-port-design-audit.md`). Shingle uses ANSI named colors (`Color::Yellow`, `Color::Cyan`, etc.). When you touch either tool, migrate inline colors to `palette` imports as you go.
+**Current reality:** both tools have `palette.rs`; most render files don't import it yet (Port: 186 inline calls per the 2026-04-19 audit). Migrate on contact.
 
 ```rust
 // src/palette.rs — create in both tools/port/ and tools/shingle/
@@ -50,29 +50,21 @@ pub const LOSS:            Color = Color::Red;                 // negative / fai
 
 **Tick score color helper (Port)** — already exists in `tools/port/src/ui.rs:tick_color()`. Don't duplicate it; move it to `palette.rs` when creating the module.
 
-**Shingle migration:** Shingle uses `Color::Yellow` for focus and ANSI named colors everywhere. These render differently in every terminal theme — a light theme makes Yellow invisible. When touching any Shingle file, replace ANSI focus colors with `BORDER_ACTIVE` / `TEAL` from palette.
-
 **Why terminal-only colors?** The CSS design tokens target white/light backgrounds. Terminal TUIs use dark backgrounds that need deeper, more saturated purples for contrast. `PURPLE_DEEP` and `MODAL_BG` are intentionally darker than anything in the web palette.
 
 ---
 
-## Current State & Migration Debt
+## Shingle Migration Debt (Port is the reference; Shingle converges on contact)
 
-This skill describes the target state. Here's what's true *right now* and what
-needs migrating — **re-verified against the tree 2026-08-13**; Port's palette
-migration had completed without this table being updated:
+Port is done (palette imported by 21+ files, 4-row chrome, custom tab bar, TEAL focus, full modals, `?` help, footer hints). Shingle gaps, fixed incrementally when touching a file — never a dedicated refactor PR:
 
-| Gap | Port | Shingle | Fix |
-|-----|------|---------|-----|
-| `palette.rs` exists | **Done** — imported by 21 files | Yes — created, not yet imported by any file | Shingle only: import `use crate::palette::*` and replace inline colors on contact |
-| 4-row chrome | Yes | No — 2-row (tab bar + body) | Add context line + footer when touching Shingle |
-| Tab bar style | Correct (custom Paragraph) | Wrong (ratatui `Tabs`, Yellow highlight) | Replace with Port-style tab bar |
-| Focus border color | Correct (TEAL) | Wrong (`Color::Yellow`) | Replace with `BORDER_ACTIVE` |
-| Modal system | Full (`modal.rs`, 6 variants) | None | Copy `modal.rs` from Port when needed |
-| `?` help overlay | Yes | No | Add per-screen help when adding modals |
-| Footer keyhints | Yes | No | Add when upgrading to 4-row chrome |
+| Gap | Fix |
+|-----|-----|
+| `palette.rs` created, imported by no file; ANSI colors everywhere (Yellow invisible on light themes) | `use crate::palette::*`; `BORDER_ACTIVE` / `TEAL` for focus |
+| 2-row chrome | Add context line + footer |
+| `Tabs` widget, Yellow highlight | Port-style tab bar (custom Paragraph) |
+| No modals / `?` help / footer hints | Copy `modal.rs` from Port; add help + hints with modals |
 
-**Migration rule:** Don't do a dedicated refactor PR. Fix these gaps incrementally when you're already touching a file for a feature or bugfix.
 
 ---
 
@@ -95,8 +87,6 @@ let chunks = Layout::default()
 
 **Modal overlay** renders after `draw_body()` using `Clear` + centered rect. Port's `modal::draw_modal()` handles this — use it, don't reinvent.
 
-Shingle currently has a 2-row chrome (tab bar + body). When adding complexity, migrate to the 4-row pattern.
-
 ---
 
 ## Tab Bar
@@ -108,7 +98,7 @@ Shingle currently has a 2-row chrome (tab bar + body). When adding complexity, m
 // Label format: " N:ScreenName " (1-indexed number prefix)
 ```
 
-Port's `draw_tab_bar()` in `src/ui.rs` is canonical. Shingle's `Tabs` widget should be migrated to match this style when touched.
+Port's `draw_tab_bar()` in `src/ui.rs` is canonical.
 
 ---
 
@@ -192,7 +182,6 @@ if let Some(ref mut modal) = app.active_modal {
 }
 ```
 
-Shingle doesn't have modals yet. Add `modal.rs` (copy from Port, adjust palette constants) when Shingle needs confirm dialogs or text input overlays.
 
 ---
 
@@ -217,7 +206,7 @@ If startup load exceeds ~400ms, show a **boot splash** (centered card: "Port —
 
 ### In-session: spawned tasks + mpsc channel + `tokio::select!`
 
-Once the main loop is running, **never block rendering on a DB query.** The canonical shape is a `tokio::select!` event loop that arbitrates between (a) keystrokes, (b) a redraw tick, and (c) finished load results delivered via `mpsc::channel`:
+Once the main loop is running, **never block rendering on a DB query.** Canonical shape:
 
 ```rust
 // Post-ETH-802 canonical main loop shape
@@ -269,13 +258,13 @@ tokio::spawn(async move {
 });
 ```
 
-Define `LoadKind` and `LoadResult` enums in `app.rs` listing every refreshable data source. `app.apply_load_result` matches on the variant, updates the relevant field, and clears the matching `loading` set entry.
+
 
 ### Lag-splash: the 400ms rule
 
 Any in-session load that hasn't completed within **400ms** of its spawn must show a centered overlay with what's loading ("Loading notes…"). Below 400ms, show only a brief status-line indicator — no overlay (avoids flicker on fast queries). Source: `ui_kits/terminal/loading.html` in the design kit.
 
-The redraw-on-tick arm of `tokio::select!` gives you the timer for this — each tick, check `Instant::now() - spawn_time` for every in-flight load and decide whether to render the splash.
+
 
 ### Rules
 
