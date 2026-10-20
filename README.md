@@ -1,185 +1,102 @@
-# Claude Code Dotfiles — Ethical Capital
+# Ethical Capital — Agent Skills
 
-Configuration, skills, and plugin stack for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) as used at [Ethical Capital](https://ethicic.com) for investment research, compliance, and software development.
+The skill library we publish for transparency: how we instruct our AI coding agents (Claude Code, Factory, pi, OpenCode) at [Ethical Capital](https://ethicic.com) — research, compliance, writing, and delivery discipline. Each skill is a directory with a `SKILL.md` (frontmatter: `name`, `description`); an agent loads it when a task matches.
 
-Published for transparency. Clients and prospective clients can see exactly how we instruct our AI tools — what standards we hold them to, what we check for, and how we think about quality.
-
-## Plugin Stack
-
-We run 16 plugins. The principle: LSPs for code navigation, workflow plugins for discipline, domain plugins only when they earn their token budget.
-
-### Always On
-
-| Plugin | Source | What It Does |
-|--------|--------|-------------|
-| `superpowers` | claude-plugins-official | 14 workflow skills (brainstorming, TDD, code review, debugging, etc.) |
-| `episodic-memory` | superpowers-marketplace | Cross-session memory via semantic search |
-| `elements-of-style` | superpowers-marketplace | Strunk's rules applied to all prose |
-| `brand-voice` | knowledge-work-plugins | Brand guideline enforcement + generation |
-| `productivity` | knowledge-work-plugins | Task management, memory management |
-| `frontend-design` | claude-plugins-official | Anti-generic design direction |
-| `claude-md-management` | claude-plugins-official | CLAUDE.md auditing and improvement |
-| `dead-code` | jko-claude-plugins | Dead code detection and removal |
-| `rust` | jko-claude-plugins | Rust critique, hardening, type strengthening |
-
-### Language Servers (LSP)
-
-| Plugin | Language | Notes |
-|--------|----------|-------|
-| `typescript-lsp` | TypeScript | Symbol nav, type checking |
-| `pyright-lsp` | Python | Type checking, symbol nav |
-| `rust-analyzer-lsp` | Rust | Full Rust IDE support |
-
-### Domain-Specific
-
-| Plugin | Source | What It Does |
-|--------|--------|-------------|
-| `database-design` | claude-code-workflows | PostgreSQL schema design best practices |
-| `database-migrations` | claude-code-workflows | Zero-downtime migration strategies |
-| `python-development` | claude-code-workflows | Async patterns, testing, packaging, uv |
-| `debugging-toolkit` | claude-code-workflows | Structured debugging methodology |
-
-### Disabled (Available When Needed)
-
-| Plugin | Why Disabled |
-|--------|-------------|
-| `marketing-skills` | ~25 skills, rarely needed — re-enable for campaigns |
-| `posthog` | ~20 skills — re-enable for analytics work |
-| `serena` | Replaced by per-language LSPs (TS/Python/Rust) |
-| `postgres-best-practices` | Duplicate of project-level Supabase MCP |
-| `data-engineering` | Not currently needed |
-| `code-review` | Superpowers handles this |
-| `textual-tui` | Not currently needed |
-
-## MCP Servers
-
-### Global (`~/.claude/.mcp.json`)
-
-| Server | What |
-|--------|------|
-| `research-mcp` | Railway-hosted web research (fetch, crawl, PDF, screenshot, search) |
-| `devin` | DeepWiki documentation + Devin session management |
-
-### Project-Level (`.mcp.json`)
-
-| Server | What |
-|--------|------|
-| `supabase` | Database management, migrations, SQL execution |
-| `linear-server` | Issue tracking, project management |
-
-### Cloud Integrations (Account-Level)
-
-Gmail, Magic Patterns, Mesh (contacts), Chrome automation.
-
-### What We Removed (and Why)
-
-| Server | Replaced By |
-|--------|-------------|
-| `filesystem` | Claude Code built-in Read/Write/Edit/Glob/Grep |
-| `cloudflare-observability` | `workers-observability` skill + wrangler CLI |
-| `cloudflare-bindings` | `workers-observability` skill + wrangler CLI |
-| `serena` (global MCP) | `serena` plugin (then replaced by per-language LSPs) |
-| `vectorbtpro` | Configured but never enabled — removed dead config |
+This repository is a published snapshot, not the operating runbook for internal systems. Skills are authored and reviewed in our monorepo and published here by hand; the cross-environment setup contract lives in [docs/spikes/2026-10-18-skills-stack-design.md](docs/spikes/2026-10-18-skills-stack-design.md).
 
 ## Skills
 
-### Investment Research & Compliance
+### Investment research and evidence
 
-How we screen companies, write exclusion narratives, and check our own work.
+| Skill | Role |
+|---|---|
+| [research-notes](research-notes/SKILL.md) | Research-note structure and lifecycle |
+| [research-reviewer](research-reviewer/SKILL.md) | Evidence integrity and note review |
+| [pipeline-runner](pipeline-runner/SKILL.md) | Research-pipeline procedures (execution needs separate access) |
+| [evidence-crawl](evidence-crawl/SKILL.md) | Gathering and preserving source material |
+| [exclusions-manager](exclusions-manager/SKILL.md) | Exclusion-data lifecycle and quality |
+| [writing-exclusions](writing-exclusions/SKILL.md) | Exclusion narratives and evidence |
+| [investment-analysis](investment-analysis/SKILL.md) | Thesis structure and decision reasoning |
+| [fact-checker](fact-checker/SKILL.md) | Claim-level verification |
+| [compliance-analyst](compliance-analyst/SKILL.md) | RIA compliance-review procedures (not legal advice) |
+| [r2-lake-sink-guardrails](r2-lake-sink-guardrails/SKILL.md) | Object-store access guardrails |
 
-| Skill | Purpose |
-|-------|---------|
-| [writing-exclusions](writing-exclusions/) | Voice and structure for exclusion narratives (public-facing on ethicic.com) |
-| [exclusions-manager](exclusions-manager/) | Full exclusion lifecycle — sources, approval workflow, taxonomy |
-| [evidence-crawl](evidence-crawl/) | Multi-source evidence gathering for exclusion research |
-| [research-reviewer](research-reviewer/) | Research note quality review, staleness detection, MD-DB consistency |
-| [research-notes](research-notes/) | Research note management for ~7,600 investment research notes |
-| [pipeline-runner](pipeline-runner/) | Orchestrates the overnight research pipeline |
-| [compliance-analyst](compliance-analyst/) | RIA marketing compliance — SEC Marketing Rule, Utah R164, CAN-SPAM |
-| [investment-analysis](investment-analysis/) | Structured logical analysis — thesis validation, bias detection, decision audit trails |
+### Writing, judgment and brand
 
-### Writing & Argumentation
+| Skill | Role |
+|---|---|
+| [buzz-saw-editor](buzz-saw-editor/SKILL.md) | Argument structure, compression, unsupported claims |
+| [anti-racist-review](anti-racist-review/SKILL.md) | Identity-sensitive framing review |
+| [veil-of-ignorance](veil-of-ignorance/SKILL.md) | Positional blind spots and who bears consequences |
+| [thought-partner](thought-partner/SKILL.md) | Structured reasoning through uncertain decisions |
+| [ecic-brand](ecic-brand/SKILL.md) | Brand voice and standards |
+| [serper-seo](serper-seo/SKILL.md) | Search-informed content research |
+| [signup-flow-cro](signup-flow-cro/SKILL.md) | Signup-flow conversion analysis |
 
-How we hold our own prose to account. These two are complementary: buzz-saw audits logic and evidence, elements-of-style (plugin) refines prose clarity.
+### Development discipline — vendored from [obra/superpowers](https://github.com/obra/superpowers) (MIT)
 
-| Skill | Purpose |
-|-------|---------|
-| [buzz-saw-editor](buzz-saw-editor/) | Ruthless argument editor — cuts filler, audits logic chains, flags unsupported claims |
-| [fact-checker](fact-checker/) | Multi-source fact-checking with structured verdicts and interactive edit approval |
-| [anti-racist-review](anti-racist-review/) | Checks writing about marginalized communities for encoded assumptions |
-| [veil-of-ignorance](veil-of-ignorance/) | Forces analysis through Rawlsian lens — who bears consequences the analyst doesn't? |
+These fourteen workflow skills are adapted from Jesse Vincent's superpowers framework and keep its `superpowers:` cross-references.
 
-### Brand & Content
+| Skill | Role |
+|---|---|
+| [using-superpowers](using-superpowers/SKILL.md) | Discovering and applying workflow skills |
+| [brainstorming](brainstorming/SKILL.md) | Requirements and design exploration |
+| [writing-plans](writing-plans/SKILL.md) | Implementation planning |
+| [executing-plans](executing-plans/SKILL.md) | Plan execution with checkpoints |
+| [test-driven-development](test-driven-development/SKILL.md) | Red/green implementation discipline |
+| [systematic-debugging](systematic-debugging/SKILL.md) | Reproduction and root-cause investigation |
+| [verification-before-completion](verification-before-completion/SKILL.md) | Executed evidence before completion claims |
+| [requesting-code-review](requesting-code-review/SKILL.md) | Review requests and context |
+| [receiving-code-review](receiving-code-review/SKILL.md) | Verifying and addressing review findings |
+| [subagent-driven-development](subagent-driven-development/SKILL.md) | Delegated implementation with review |
+| [dispatching-parallel-agents](dispatching-parallel-agents/SKILL.md) | Independent parallel work |
+| [using-git-worktrees](using-git-worktrees/SKILL.md) | Isolated development workspaces |
+| [finishing-a-development-branch](finishing-a-development-branch/SKILL.md) | Integration and branch closeout |
+| [writing-skills](writing-skills/SKILL.md) | Skill authoring and verification |
 
-| Skill | Purpose |
-|-------|---------|
-| [ecic-brand](ecic-brand/) | Brand voice, visual identity, and tone enforcement |
-| [serper-seo](serper-seo/) | SERP research, keyword analysis, content framing |
-| [signup-flow-cro](signup-flow-cro/) | Signup and registration flow conversion optimization |
+### Interfaces, documents and infrastructure
 
-### Infrastructure & Observability
+| Skill | Role |
+|---|---|
+| [accessibility-review](accessibility-review/SKILL.md) | Accessibility checks across human-facing output |
+| [data-app-ui-review](data-app-ui-review/SKILL.md) | Data-application clarity and interaction review |
+| [typeset-pdf](typeset-pdf/SKILL.md) | Document and PDF production |
+| [cynical-schema-review](cynical-schema-review/SKILL.md) | Database design and migration-risk review |
+| [deploy-worker](deploy-worker/SKILL.md) | Worker release procedures |
+| [workers-best-practices](workers-best-practices/SKILL.md) | Worker implementation patterns |
+| [workers-observability](workers-observability/SKILL.md) | Worker health and diagnostics |
+| [auditing-claude-installation](auditing-claude-installation/SKILL.md) | Claude Code configuration audits |
 
-| Skill | Purpose |
-|-------|---------|
-| [deploy-worker](deploy-worker/) | Cloudflare Worker deployment with pre-deploy checks and rollback |
-| [workers-observability](workers-observability/) | Worker health, binding inspection, metrics, debugging (replaces CF MCPs) |
-| [workers-best-practices](workers-best-practices/) | CF Workers production patterns — streaming, error handling, secrets |
+### Historical
 
-### Code Quality & Review
+[beads-issue-tracking](beads-issue-tracking/SKILL.md) is superseded — kata is the organization's tracker; do not include it in current setups.
 
-| Skill | Purpose |
-|-------|---------|
-| [cynical-schema-review](cynical-schema-review/) | Ruthless database schema review — type mismatches, missing constraints, edge cases |
-| [data-app-ui-review](data-app-ui-review/) | UI/UX review for data apps, dashboards, analytics tools |
-| [accessibility-review](accessibility-review/) | WCAG 2.2 AA + PDF/UA across all output types |
-| [auditing-claude-installation](auditing-claude-installation/) | Audit Claude Code setup for conflicts, duplicates, security risks |
-| [typeset-pdf](typeset-pdf/) | Branded PDF generation from markdown/Typst |
+## Vendored in our wider stack (not republished here)
 
-### Thinking Tools
+Third-party skill families and tools we run machine-side, pointing at their upstreams:
 
-| Skill | Purpose |
-|-------|---------|
-| [thought-partner](thought-partner/) | Structured reasoning for tricky, uncertain, or strategic problems |
+- [obra/superpowers](https://github.com/obra/superpowers) — the workflow family above (MIT)
+- [Leonxlnx/taste-skill](https://github.com/Leonxlnx/taste-skill) — design-taste family (brandkit, design-taste-frontend, …)
+- [tt-a1i/archify](https://github.com/tt-a1i/archify) — architecture diagrams as standalone HTML
+- [pbakaus/impeccable](https://github.com/pbakaus/impeccable) and [@fradser/pi-impeccable](https://www.npmjs.com/package/@fradser/pi-impeccable) — interface design guidance and its Pi extension
+- [backnotprop/plannotator](https://github.com/backnotprop/plannotator) — plan annotation family
+- [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) and [vercel-labs/skills](https://github.com/vercel-labs/skills) — find-skills, web/writing guidelines
+- RPIV workflow stages — [@juicesharp/rpiv-pi](https://www.npmjs.com/package/@juicesharp/rpiv-pi), [@juicesharp/rpiv-workflow](https://www.npmjs.com/package/@juicesharp/rpiv-workflow), [srvo/rpiv-praxis](https://github.com/srvo/rpiv-praxis)
 
-## Configuration Principles
+## Install
 
-### Token Budget Management
-
-Every skill description, MCP tool name, and plugin instruction block consumes tokens in every prompt. We audit aggressively:
-
-- **Skills**: ~95 total (was 130). Removed duplicates from plugins re-exporting the same skills.
-- **MCP tools**: ~105 deferred tools (was 152). Removed redundant servers, fixed Serena context flag.
-- **Plugin MCP servers**: 18 (was 27). Disabled servers that duplicate project-level MCPs.
-- **LSP servers**: 3 (TypeScript, Python, Rust). Replaced Serena's single-language MCP with per-language LSPs.
-
-### Credential Management
-
-All secrets flow through [Doppler](https://doppler.com) (project: `rawls`, env: `dev`). MCP configs never contain hardcoded credentials — they wrap commands in `doppler run --`.
-
-### Permission Philosophy
-
-Pattern-based allow rules (`Bash(git:*)`, `Bash(doppler run:*)`) rather than per-command approvals. Session-specific one-off permissions are cleaned periodically to prevent `settings.local.json` bloat.
-
-## Installation
-
-Copy any skill directory into your `.claude/skills/` folder:
+Clone this repository, then copy a skill into your agent's skills directory:
 
 ```bash
-# Single skill
 cp -r buzz-saw-editor/ ~/.claude/skills/buzz-saw-editor/
-
-# All skills
-for d in */; do [ -f "$d/SKILL.md" ] && cp -r "$d" ~/.claude/skills/; done
 ```
 
-Skills are loaded automatically by Claude Code when their trigger description matches your task.
+Review a skill's license and supporting files before adopting it. A skill is instructions, not permission to access a system — supply tools and credentials separately.
 
-## Philosophy
+## Ownership and privacy
 
-We believe in radical transparency. These skills encode our actual working standards — not aspirational documentation, but the instructions we give our tools every day. If a skill says "never skip verification," that is a rule we enforce on ourselves.
-
-The investment research and compliance skills are especially relevant for due diligence. They show how we screen companies, write exclusion narratives, check facts, and review marketing materials for regulatory compliance.
+One writer per skill: our monorepo authors and renders these trees, and this repository only publishes them. Ownership changes go through explicit reviewed handoffs. Private material — research notes, client data, personal collaboration learning — does not become publishable by being version-controlled; a public branch is publication.
 
 ## License
 
-[CC BY-NC 4.0](LICENSE) — use freely, but not for resale.
+[CC BY-NC 4.0](LICENSE) for our own skills. Vendored skills retain their upstream licenses.
