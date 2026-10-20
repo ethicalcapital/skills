@@ -34,27 +34,6 @@ This repository is a published snapshot, not the operating runbook for internal 
 | [serper-seo](serper-seo/SKILL.md) | Search-informed content research |
 | [signup-flow-cro](signup-flow-cro/SKILL.md) | Signup-flow conversion analysis |
 
-### Development discipline — vendored from [obra/superpowers](https://github.com/obra/superpowers) (MIT)
-
-These fourteen workflow skills are adapted from Jesse Vincent's superpowers framework and keep its `superpowers:` cross-references.
-
-| Skill | Role |
-|---|---|
-| [using-superpowers](using-superpowers/SKILL.md) | Discovering and applying workflow skills |
-| [brainstorming](brainstorming/SKILL.md) | Requirements and design exploration |
-| [writing-plans](writing-plans/SKILL.md) | Implementation planning |
-| [executing-plans](executing-plans/SKILL.md) | Plan execution with checkpoints |
-| [test-driven-development](test-driven-development/SKILL.md) | Red/green implementation discipline |
-| [systematic-debugging](systematic-debugging/SKILL.md) | Reproduction and root-cause investigation |
-| [verification-before-completion](verification-before-completion/SKILL.md) | Executed evidence before completion claims |
-| [requesting-code-review](requesting-code-review/SKILL.md) | Review requests and context |
-| [receiving-code-review](receiving-code-review/SKILL.md) | Verifying and addressing review findings |
-| [subagent-driven-development](subagent-driven-development/SKILL.md) | Delegated implementation with review |
-| [dispatching-parallel-agents](dispatching-parallel-agents/SKILL.md) | Independent parallel work |
-| [using-git-worktrees](using-git-worktrees/SKILL.md) | Isolated development workspaces |
-| [finishing-a-development-branch](finishing-a-development-branch/SKILL.md) | Integration and branch closeout |
-| [writing-skills](writing-skills/SKILL.md) | Skill authoring and verification |
-
 ### Review, delivery and tracking
 
 | Skill | Role |
@@ -71,14 +50,12 @@ These fourteen workflow skills are adapted from Jesse Vincent's superpowers fram
 | [data-app-ui-review](data-app-ui-review/SKILL.md) | Data-application clarity and interaction review |
 | [typeset-pdf](typeset-pdf/SKILL.md) | Document and PDF production |
 | [cynical-schema-review](cynical-schema-review/SKILL.md) | Database design and migration-risk review |
-| [auditing-claude-installation](auditing-claude-installation/SKILL.md) | Claude Code configuration audits |
 | [rust-tui](rust-tui/SKILL.md) | Terminal UI patterns for our Rust clients |
 
 ## Vendored in our wider stack (not republished here)
 
 Third-party skill families and tools we run machine-side, pointing at their upstreams:
 
-- [obra/superpowers](https://github.com/obra/superpowers) — the workflow family above (MIT)
 - [Leonxlnx/taste-skill](https://github.com/Leonxlnx/taste-skill) — design-taste family (brandkit, design-taste-frontend, …)
 - [tt-a1i/archify](https://github.com/tt-a1i/archify) — architecture diagrams as standalone HTML
 - [pbakaus/impeccable](https://github.com/pbakaus/impeccable) and [@fradser/pi-impeccable](https://www.npmjs.com/package/@fradser/pi-impeccable) — interface design guidance and its Pi extension

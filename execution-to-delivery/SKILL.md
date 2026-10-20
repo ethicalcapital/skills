@@ -4,13 +4,12 @@ description: >
   Use when moving from plan to shipped artifact without dropping the final 5%.
   Trigger for multi-step implementation work, branch execution, and completion
   verification under delivery pressure.
-version: 1.0.0
+version: 1.1.0
 author: Ethical Capital
 license: Proprietary
 metadata:
   hermes:
     tags: [planning, execution, delivery, verification]
-    related_skills: [writing-plans, executing-plans, verification-before-completion, finishing-a-development-branch, subagent-driven-development]
 ---
 
 # Execution to Delivery
@@ -19,7 +18,7 @@ metadata:
 
 This umbrella skill enforces the capture → structure → refine → deliver path for implementation work.
 
-Leaf skills are sequenced to prevent “started but not shipped” outcomes.
+Leaf steps are sequenced to prevent “started but not shipped” outcomes.
 
 ## When to Use
 
@@ -29,16 +28,11 @@ Leaf skills are sequenced to prevent “started but not shipped” outcomes.
 
 ## Workflow
 
-1. `writing-plans`
-   - Define objective, constraints, acceptance criteria.
-2. `executing-plans`
-   - Execute planned tasks in order with evidence.
-3. `subagent-driven-development` (optional)
-   - Parallelize independent subtasks when it reduces cycle time.
-4. `verification-before-completion`
-   - Confirm output matches requirements and runs.
-5. `finishing-a-development-branch`
-   - Cleanly package final state.
+1. **Plan.** State the objective, constraints and acceptance criteria on the kata ticket before touching code.
+2. **Execute.** Work the planned tasks in order, keeping evidence for each one.
+3. **Parallelize** (optional). Split independent subtasks when it shortens the cycle; dispatch subagents unnamed so their reports return inline.
+4. **Verify.** Confirm the output matches the requirements and actually runs.
+5. **Deliver.** Package the final state: rebase on `dev`, push the branch, open the PR.
 
 ## Completion Rule
 

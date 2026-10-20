@@ -67,7 +67,7 @@ The script handles SearXNG + EXA in parallel and returns structured JSON with so
 
 ### Strategy C: Subagents for large documents (10+ FACT claims)
 
-Use the `dispatching-parallel-agents` pattern. Spawn one subagent per claim (or batch of 2–3 claims). Each subagent uses WebSearch + WebFetch to find evidence. Merge results back.
+Spawn one subagent per claim (or batch of 2–3 claims), each using WebSearch + WebFetch to find evidence, then merge the results back. Dispatch them unnamed so each report returns inline.
 
 This gives up to three independent search signals per claim:
 1. WebSearch (Claude Code built-in)
