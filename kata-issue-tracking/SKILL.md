@@ -1,5 +1,5 @@
 ---
-skill: kata-issue-tracking
+name: kata-issue-tracking
 description: Issue tracking via the kata CLI. MUST READ before starting work, issue/backlog triage, issue mutations, or next-task selection.
 version: 1.0.0
 ---
