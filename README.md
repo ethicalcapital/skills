@@ -2,7 +2,7 @@
 
 The skill library we publish for transparency: how we instruct our AI coding agents (Claude Code, Factory, pi, OpenCode) at [Ethical Capital](https://ethicic.com) — research, compliance, writing, and delivery discipline. Each skill is a directory with a `SKILL.md` (frontmatter: `name`, `description`); an agent loads it when a task matches.
 
-This repository is a published snapshot, not the operating runbook for internal systems. Skills are authored and reviewed in our monorepo and published here by hand; the cross-environment setup contract lives in [docs/spikes/2026-10-18-skills-stack-design.md](docs/spikes/2026-10-18-skills-stack-design.md).
+This repository is a published snapshot, not the operating runbook for internal systems. Skills are authored and reviewed in our monorepo and published here by hand; the cross-environment setup contract lives in [docs/spikes/2026-10-18-skills-stack-design.md](docs/spikes/2026-10-18-skills-stack-design.md). This repository is canonical; [github.com/ethicalcapital/skills](https://github.com/ethicalcapital/skills) mirrors it.
 
 ## Skills
 
@@ -28,6 +28,7 @@ This repository is a published snapshot, not the operating runbook for internal 
 | [buzz-saw-editor](buzz-saw-editor/SKILL.md) | Argument structure, compression, unsupported claims |
 | [anti-racist-review](anti-racist-review/SKILL.md) | Identity-sensitive framing review |
 | [veil-of-ignorance](veil-of-ignorance/SKILL.md) | Positional blind spots and who bears consequences |
+| [ethical-editorial-gate](ethical-editorial-gate/SKILL.md) | Ethics gate for persuasive and identity-adjacent writing |
 | [thought-partner](thought-partner/SKILL.md) | Structured reasoning through uncertain decisions |
 | [ecic-brand](ecic-brand/SKILL.md) | Brand voice and standards |
 | [serper-seo](serper-seo/SKILL.md) | Search-informed content research |
@@ -54,6 +55,14 @@ These fourteen workflow skills are adapted from Jesse Vincent's superpowers fram
 | [finishing-a-development-branch](finishing-a-development-branch/SKILL.md) | Integration and branch closeout |
 | [writing-skills](writing-skills/SKILL.md) | Skill authoring and verification |
 
+### Review, delivery and tracking
+
+| Skill | Role |
+|---|---|
+| [code-review-lifecycle](code-review-lifecycle/SKILL.md) | End-to-end pull-request review flow |
+| [execution-to-delivery](execution-to-delivery/SKILL.md) | Finishing the last 5% of delivery |
+| [kata-issue-tracking](kata-issue-tracking/SKILL.md) | Organization issue-tracker workflow |
+
 ### Interfaces, documents and infrastructure
 
 | Skill | Role |
@@ -62,14 +71,8 @@ These fourteen workflow skills are adapted from Jesse Vincent's superpowers fram
 | [data-app-ui-review](data-app-ui-review/SKILL.md) | Data-application clarity and interaction review |
 | [typeset-pdf](typeset-pdf/SKILL.md) | Document and PDF production |
 | [cynical-schema-review](cynical-schema-review/SKILL.md) | Database design and migration-risk review |
-| [deploy-worker](deploy-worker/SKILL.md) | Worker release procedures |
-| [workers-best-practices](workers-best-practices/SKILL.md) | Worker implementation patterns |
-| [workers-observability](workers-observability/SKILL.md) | Worker health and diagnostics |
 | [auditing-claude-installation](auditing-claude-installation/SKILL.md) | Claude Code configuration audits |
-
-### Historical
-
-[beads-issue-tracking](beads-issue-tracking/SKILL.md) is superseded — kata is the organization's tracker; do not include it in current setups.
+| [rust-tui](rust-tui/SKILL.md) | Terminal UI patterns for our Rust clients |
 
 ## Vendored in our wider stack (not republished here)
 
@@ -85,7 +88,7 @@ Third-party skill families and tools we run machine-side, pointing at their upst
 
 ## Install
 
-Clone this repository, then copy a skill into your agent's skills directory:
+Clone this repository (or its GitHub mirror), then copy a skill into your agent's skills directory:
 
 ```bash
 cp -r buzz-saw-editor/ ~/.claude/skills/buzz-saw-editor/
