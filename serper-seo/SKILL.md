@@ -1,6 +1,6 @@
 ---
 name: serper-seo
-description: "Use when you need to research keyword opportunities, analyze SERP competition, find long-tail queries, or inform content framing decisions using real search data. Requires SERPER_API_KEY in Doppler."
+description: "Use when you need to research keyword opportunities, analyze SERP competition, find long-tail queries, or inform content framing decisions using real search data. Requires SERPER_API_KEY in BWS."
 ---
 
 # Serper SEO Research
@@ -9,21 +9,26 @@ Use Serper's Google Search API to research keyword demand, competition, and cont
 
 ## API Access
 
+`SERPER_API_KEY` lives in BWS. `bws run --` injects it into the
+environment of the command it wraps — never fetch the value into a shell
+variable, and never interpolate it in an outer shell (see
+`~/.claude/rules/secret-handling.md`). Because the header has to be built from
+`$SERPER_API_KEY`, write the request to a script file and let *that* read the
+env, rather than inlining it (`~/.claude/rules/claude-code-bash-quoting.md`):
+
 ```bash
-# Get key from Doppler
-SERPER_KEY=$(doppler secrets get SERPER_API_KEY --plain)
-
-# Basic search
-curl -s -X POST https://google.serper.dev/search \
-  -H "X-API-KEY: $SERPER_KEY" \
+cat > /tmp/serper.sh <<'EOF'
+#!/usr/bin/env bash
+# $1 = endpoint (search|news), $2 = query, $3 = num results
+curl -s -X POST "https://google.serper.dev/$1" \
+  -H "X-API-KEY: $SERPER_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"q": "your query here", "num": 10}' | jq .
+  --data "$(jq -nc --arg q "$2" --argjson n "${3:-10}" '{q: $q, num: $n}')"
+EOF
+chmod +x /tmp/serper.sh
 
-# News search
-curl -s -X POST https://google.serper.dev/news \
-  -H "X-API-KEY: $SERPER_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"q": "your query here", "num": 10}' | jq .
+bws run -- /tmp/serper.sh search "your query here" 10 | jq .
+bws run -- /tmp/serper.sh news   "your query here" 10 | jq .
 ```
 
 ## Research Workflow for Content Strategy
@@ -33,8 +38,8 @@ curl -s -X POST https://google.serper.dev/news \
 Search the core framing questions to understand intent and competition:
 
 ```bash
-SERPER_KEY=$(doppler secrets get SERPER_API_KEY --plain)
-
+cat > /tmp/serper-seed.sh <<'EOF'
+#!/usr/bin/env bash
 for query in \
   "should I leave America" \
   "moving abroad as a Black American" \
@@ -48,11 +53,15 @@ for query in \
   "expatriate guide marginalized Americans"; do
   echo "=== $query ==="
   curl -s -X POST https://google.serper.dev/search \
-    -H "X-API-KEY: $SERPER_KEY" \
+    -H "X-API-KEY: $SERPER_API_KEY" \
     -H "Content-Type: application/json" \
-    -d "{\"q\": \"$query\", \"num\": 5}" | jq '.organic[].title'
+    --data "$(jq -nc --arg q "$query" '{q: $q, num: 5}')" | jq '.organic[].title'
   echo ""
 done
+EOF
+chmod +x /tmp/serper-seed.sh
+
+bws run -- /tmp/serper-seed.sh
 ```
 
 ### Step 2: Analyze Top Results
@@ -67,19 +76,15 @@ For each top-ranking page, note:
 ### Step 3: "People Also Ask" Mining
 
 ```bash
-curl -s -X POST https://google.serper.dev/search \
-  -H "X-API-KEY: $SERPER_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"q": "retire abroad as American 2025", "num": 10}' | jq '.peopleAlsoAsk[].question'
+bws run -- /tmp/serper.sh search "retire abroad as American 2025" 10 \
+  | jq '.peopleAlsoAsk[].question'
 ```
 
 ### Step 4: Related Searches
 
 ```bash
-curl -s -X POST https://google.serper.dev/search \
-  -H "X-API-KEY: $SERPER_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"q": "best countries to move to from USA", "num": 10}' | jq '.relatedSearches[].query'
+bws run -- /tmp/serper.sh search "best countries to move to from USA" 10 \
+  | jq '.relatedSearches[].query'
 ```
 
 ## Key Data Points to Extract
@@ -117,3 +122,9 @@ After running research, deliver:
 3. **Recommended title/H1** — for the guide index page
 4. **Top 10 long-tail opportunities** — city + identity keyword combos
 5. **FAQ questions to add** — from People Also Ask, formatted for schema markup
+
+## Deprecated (do not use)
+
+- `doppler secrets get SERPER_API_KEY --plain` — the key is in BWS, and fetching a
+  secret to stdout is forbidden regardless (`~/.claude/rules/secret-handling.md`).
+  Let `bws run --` inject it and have the script read `$SERPER_API_KEY`.

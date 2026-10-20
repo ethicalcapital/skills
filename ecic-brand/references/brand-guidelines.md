@@ -7,10 +7,14 @@
 
 **Legal name:** Ethical Capital LLC
 **Brand name:** Ethical Capital | **Abbreviation:** ECIC (informal only)
+**Which name when (CIO convention, 2026-09-12):**
+- Everyday use (email sign-offs, UI copy, marketing prose, prompts): "Ethical Capital". Example: "— Sloane, Ethical Capital".
+- Formal documents (legal disclaimers, compliance footers, contracts, regulatory identity strings, signature blocks on filings): "Ethical Capital LLC". Example: "Ethical Capital LLC is a registered investment adviser."
+- "Ethical Capital Investment Collaborative" is a retired DBA. Leave it, and "Invest Vegan LLC" (the legal name before 2026-03-06), only in historical records: as-filed documents, executed agreements, press coverage, "formerly …" mentions.
 **Website:** https://ethicic.com | **Email:** hello@ethicic.com
 **Registration:** State-registered investment adviser, Utah (CRD #316032). Never "SEC-registered."
 **Founded:** July 2, 2021
-**Address:** 90 N 400 E, Provo, UT 84606
+**Address:** Provo, UT
 **CIO:** Sloane Ortel (she/her) — Founder & Chief Investment Officer. Former CFA Institute Content Manager. **Not a CFA charterholder.**
 **Fee:** 1% annually, no minimums
 
@@ -376,7 +380,7 @@ dark:      #581c87  (ECIC Purple)
 
 - **Main:** `assets/brand/logos/ecic-logo.svg`
 - **Favicon:** `assets/brand/logos/favicon.svg`
-- **Alt text:** "Invest Vegan LLC DBA Ethical Capital"
+- **Alt text:** "Ethical Capital"
 - Desktop nav: max-height 60px | Mobile nav: max-height 45px
 
 ### Responsive Breakpoints

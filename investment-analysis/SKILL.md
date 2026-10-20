@@ -269,10 +269,10 @@ Use these templates for specific analysis types:
 
 ## Integration Points
 
-- **Data Sources**: Self-hosted Nhost PostgreSQL on rawls (credentials via Doppler: project rawls, env dev)
+- **Data Sources**: Supabase PostgreSQL (`SUPABASE_DB_URL`, injected by `bws run --`)
 - **Screening Policy**: Reference https://ethicic.com/content/process/screening-policy
 - **Ethical Framework**: Align with firm's values and impact objectives
-- **Credential Management**: Always use `doppler run --` for database access
+- **Credential Management**: Always use `bws run --` for database access
 - **GraphQL API**: Self-hosted Hasura endpoint available for queries
 
 ## Output Format
@@ -292,3 +292,7 @@ This ensures decisions are:
 ---
 
 **Remember**: This skill doesn't replace your judgment. It makes your judgment better by ensuring it rests on solid analytical foundations rather than intuition or confirmation bias.
+
+## Deprecated (do not use)
+
+- `doppler run -- ...` for database access — this repo uses `bws run --`

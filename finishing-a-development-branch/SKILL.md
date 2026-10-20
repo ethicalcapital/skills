@@ -201,9 +201,12 @@ WORKTREE_PATH=$(git rev-parse --show-toplevel)
 ```bash
 MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
 cd "$MAIN_ROOT"
-git worktree remove "$WORKTREE_PATH"
-git worktree prune  # Self-healing: clean up any stale registrations
+python3 machine/worktree.py remove "$WORKTREE_PATH"  # monocloud: never main/locked; refuses dirty
+git worktree prune --dry-run  # report stale registrations only; remove each one you own with `git worktree remove`
 ```
+
+In monocloud, `python3 machine/worktree.py cleanup` (dry-run; `--apply` to delete)
+sweeps every merged, clean, idle worktree; `report` shows what is reclaimable.
 
 **Otherwise:** The host environment (harness) owns this workspace. Do NOT remove it. If your platform provides a workspace-exit tool, use it. Otherwise, leave the workspace in place.
 
@@ -266,5 +269,5 @@ Lineage parity (`dev`/`main`) is required whenever integration work has just bee
 - Get typed confirmation for Option 4
 - Clean up worktree for Options 1 & 4 only
 - `cd` to main repo root before worktree removal
-- Run `git worktree prune` after removal
+- `git worktree remove` already unregisters; never bare `git worktree prune` — it unregisters every worktree whose path is missing *from where it runs* (other containers/hosts), and git reuses the freed name (ETH-nn2ne)
 - For `dev`/`main` integration work, verify `git rev-list --left-right --count origin/dev...origin/main` returns `0 0` before calling the workflow complete
