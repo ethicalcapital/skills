@@ -1,11 +1,38 @@
 ---
 name: evidence-crawl
-description: Use when writing exclusion reason_detail narratives and you need to gather source material — reads from R2 evidence archive and Qdrant semantic search first, falls back to crawl4ai or Keiro Drift only when local sources are insufficient. Also use when asked to "crawl this URL", "fetch that page", or "store evidence". If context is still insufficient after local search, writes a review_note flagging what's missing rather than speculating.
+description: Use when consolidating evidence for exclusion reason_detail narratives or fetching new source material — reads the R2 evidence archive and Qdrant semantic search first, falling back to crawl4ai or Keiro Drift only when local sources are insufficient. Also use for "crawl this URL", "fetch that page", "store evidence". If context is still insufficient after local search, write a review_note flagging what is missing rather than speculating.
 ---
 
 # Evidence Consolidation & Crawl
 
-The primary job is **consolidating evidence that already exists locally** into reason_detail narratives. Most exclusion records already have crawled evidence in R2 and/or indexed chunks in Qdrant. Start there.
+The primary job is **consolidating evidence that already exists locally** into
+reason_detail narratives. Most exclusion records already have crawled evidence
+in R2 and/or indexed chunks in Qdrant. Start there.
+
+## When to Use
+
+Use when:
+- Building exclusion/evidence narratives from existing artifact stores.
+- Verifying whether current evidence is sufficient for a claim.
+- Fetching missing source material before narrative synthesis.
+
+Do not use when:
+- You only need pipeline execution controls (`pipeline-runner`).
+- You only need note-format/editorial cleanup (`research-notes`).
+
+## ADR Pointers
+
+- `docs/adr/2026-05-27-canonical-artifacts-activity-annotations-schema.md`
+- `docs/adr/2026-05-29-internal-services-route-through-internal-api.md`
+
+## Non-Negotiable: Persist Artifacts to R2
+
+If content informs a claim, it must be persisted as a retrievable R2 artifact.
+
+- Prefer already-persisted artifacts first.
+- Persist new fetched content + metadata **before** synthesis.
+- Use stable keys so citations resolve to artifacts.
+- Stop and flag if R2 persistence fails.
 
 ## Workflow
 
@@ -55,11 +82,14 @@ for r in results:
 
 ### From the DB record itself
 
-The `evidence_url`, `evidence_citation`, `reason_detail`, and `notes` fields on `exclusions.active_exclusions` often contain enough context to write a narrative without crawling anything.
+The `evidence_url`, `evidence_citation`, `reason_detail`, and `notes` fields on
+`exclusions.active_exclusions` often contain enough context to write a narrative
+without crawling anything.
 
 ## Step 2: Flag Gaps (Don't Speculate)
 
-If local evidence is insufficient to write a confident reason_detail, update the record's `review_note` to flag what's missing:
+If local evidence is insufficient to write a confident reason_detail, update the
+record's `review_note` to flag what is missing:
 
 ```sql
 UPDATE exclusions.active_exclusions SET
@@ -84,12 +114,17 @@ Use the WebFetch tool directly. If empty/garbled, fall back to crawl4ai.
 ```python
 import httpx, os
 
+# Use the shared resolvers: default is the internal-api route on api.ec1c.com
+# (CF Access injected; the Worker adds the Crawl4AI bearer). On the research CT
+# set CRAWL4AI_URL=http://crawl4ai:11235. RAILWAY_* names are a legacy misnomer.
+from monocloud_research.fetcher import crawl4ai_headers, get_crawl4ai_token, get_crawl4ai_url
+
+crawl4ai_url = get_crawl4ai_url()
+crawl4ai_token = get_crawl4ai_token()
+
 resp = httpx.post(
-    f"{os.environ['RAILWAY_CRAWL4AI_URL']}/crawl",
-    headers={
-        "Authorization": f"Bearer {os.environ['RAILWAY_CRAWL4AI_API_TOKEN']}",
-        "Content-Type": "application/json",
-    },
+    f"{crawl4ai_url}/crawl",
+    headers=crawl4ai_headers(crawl4ai_url, crawl4ai_token),
     json={
         "urls": ["https://example.com"],
         "browser_config": {"headless": True},
@@ -132,12 +167,12 @@ for source in result.sources:
 ## Batch Ingestion
 
 ```bash
-doppler run -- uv run python scripts/crawl_evidence_to_r2_qdrant.py [--dry-run] [--limit N] [--skip-qdrant]
+bws run -- uv run python scripts/crawl_evidence_to_r2_qdrant.py [--dry-run] [--limit N] [--skip-qdrant]
 ```
 
 ## Proxy (Blocked Sites)
 
-Pass Mullvad SOCKS5 per-request when rawls IP is blocked:
+Pass Mullvad SOCKS5 per-request when the crawler's egress IP is blocked:
 
 ```python
 "crawler_config": {
@@ -149,11 +184,30 @@ Pass Mullvad SOCKS5 per-request when rawls IP is blocked:
 
 | Var | What |
 |-----|------|
-| `RAILWAY_CRAWL4AI_URL` | `https://crawl.ec1c.com` |
-| `RAILWAY_CRAWL4AI_API_TOKEN` | Bearer auth |
+| `CRAWL4AI_URL` (fallback `RAILWAY_CRAWL4AI_URL`) | Defaults to `https://api.ec1c.com/api/v1/research/crawl4ai` (internal-api; 503 until the VPC binding lands, ETH-ixivw 3/3). `http://crawl4ai:11235` on the research CT |
+| `CRAWL4AI_API_TOKEN` (fallback `RAILWAY_CRAWL4AI_API_TOKEN`) | Bearer auth — only needed against the CT alias; the Worker injects it on the default route |
 | `CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` | Service token for `*.ec1c.com` |
 | `R2_ENDPOINT_URL` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | R2 evidence storage |
 | `KEIRO_API_KEY` | Keiro Drift (only when doing new research) |
 | `DEEPINFRA_API_KEY` | Embedding for Qdrant |
 
-All in Doppler (project: `rawls`, env: `dev`). Run with `doppler run --`.
+All live in BWS (project `monocloud`). Inject with `bws run -- <command>`.
+
+## Execution Posture
+
+- Local-first retrieval, then targeted crawl.
+- No speculation when evidence is incomplete.
+- Narrative quality is constrained by artifact quality; missing evidence is a
+  blocker, not something to write around.
+
+## Failure Modes to Watch
+
+- Narrative synthesis proceeds from uncaptured/transient evidence.
+- New crawl output is used before R2 persistence succeeds.
+- Missing evidence is papered over instead of explicitly flagged.
+
+## Deprecated (do not use)
+
+- `doppler run -- ...` examples — this repo uses `bws run --`
+- Hardcoded `/Users/...` paths
+- Treating uncaptured web snippets as acceptable evidence

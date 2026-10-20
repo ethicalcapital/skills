@@ -10,16 +10,18 @@ Phase 4: Propose concrete edits (hyperlinks, footnotes, rewording) for anything
 
 Usage:
     # Markdown report to stdout
-    cat doc.txt | doppler run -- uv run python fact_check.py
+    cat doc.txt | bws-run uv run python fact_check.py
 
     # JSON for Claude's approval loop (pass source file so edits can reference line spans)
-    doppler run -- uv run python fact_check.py --file doc.md --json
+    bws-run uv run python fact_check.py --file doc.md --json
 
     # Save report
-    doppler run -- uv run python fact_check.py --file doc.md --output report.md --verbose
+    bws-run uv run python fact_check.py --file doc.md --output report.md --verbose
 
-Env vars (via Doppler):
-    SEARXNG_URL          — self-hosted SearXNG (preferred)
+Env vars (via BWS):
+    SEARXNG_URL          — self-hosted SearXNG (preferred); defaults to the
+                           internal-api route https://api.ec1c.com/api/v1/research/searxng
+                           (CF_ACCESS_CLIENT_ID/SECRET injected for ec1c.com hosts)
     RAILWAY_SEARXNG_URL  — legacy fallback for SEARXNG_URL
     EXA_API_KEY          — EXA neural search (optional, improves recall)
     ANTHROPIC_API_KEY    — Claude API (required)
@@ -93,12 +95,19 @@ class ClaimResult:
 
 async def searxng_search(query: str, num: int = 6) -> list[Source]:
     base_url = (
-        os.environ.get("SEARXNG_URL") or os.environ.get("RAILWAY_SEARXNG_URL", "")
+        os.environ.get("SEARXNG_URL")
+        or os.environ.get("RAILWAY_SEARXNG_URL")
+        or "https://api.ec1c.com/api/v1/research/searxng"
     ).rstrip("/")
-    if not base_url:
-        return []
+    headers: dict[str, str] = {}
+    if "ec1c.com" in base_url:
+        cf_id = os.environ.get("CF_ACCESS_CLIENT_ID", "")
+        cf_secret = os.environ.get("CF_ACCESS_CLIENT_SECRET", "")
+        if cf_id and cf_secret:
+            headers["CF-Access-Client-Id"] = cf_id
+            headers["CF-Access-Client-Secret"] = cf_secret
     try:
-        async with httpx.AsyncClient(timeout=20) as client:
+        async with httpx.AsyncClient(timeout=20, headers=headers) as client:
             resp = await client.get(
                 f"{base_url}/search",
                 params={"q": query, "format": "json", "language": "en", "pageno": 1},

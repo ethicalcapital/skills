@@ -109,10 +109,56 @@ Do NOT just increase timeouts - find the real issue.
 Return: Summary of what you found and what you fixed.
 ```
 
+## Do NOT pass `name:` unless you need to message the agent mid-flight
+
+**This is the single highest-cost mistake in this skill.** `name:` silently changes
+the delivery contract, and it fails in the direction where a lost report looks like a
+clean result.
+
+| Dispatch | Report reaches you | On-disk transcript |
+|---|---|---|
+| `Agent({prompt, subagent_type})` — **unnamed** | **automatically**, in the completion notification's `<result>` | yes, at `output_file` |
+| `Agent({prompt, subagent_type, name: "x"})` | **only if the agent itself calls `SendMessage`** | **none** |
+
+A named agent becomes an `in_process_teammate`. Its final text is not a return value —
+it goes nowhere unless the agent chooses to send it. When it doesn't, the report is
+**gone permanently**: teammates leave no transcript, no output file, nothing keyed to
+their task id, so there is nothing to recover.
+
+What you get instead is an `idle_notification` with `"idleReason":"available"`. That is
+**not** a completion signal and carries no result. It is byte-identical whether the
+agent did brilliant work and forgot to send it, or found nothing, or died early.
+
+Measured 2026-08-18: three adversarial review agents were dispatched with `name:`. One
+delivered, and only after being chased twice. Two produced four idle pings between them
+and nothing else; their work is unrecoverable. Verified by control test — an unnamed
+agent's report arrived in the completion `<result>` with no cooperation required, and
+`find` located a transcript for it and **zero** files for any of the three teammates.
+
+**Rules:**
+
+1. **Default to unnamed.** Name an agent only when you genuinely need to `SendMessage`
+   it while it runs. Review, research, and analysis agents almost never need this.
+2. **If you must name one, instruct it to `SendMessage` its report explicitly** — and
+   still treat that as best-effort, because two of three ignored exactly that
+   instruction.
+3. **Never read silence as a pass.** An agent that idles without a report has reported
+   nothing. Chase it once; if it idles again, record "did not deliver" and do the
+   verification yourself. Do not let a missing review read as a clean review — on
+   2026-08-18 chasing the one agent that did deliver is what caught a PR carrying an
+   illegitimate CI override and a `baseline.json` that would have rewound dev's quality
+   ledger.
+4. **`scripts/agent-report.sh` does not exist.** Older notes claim it recovers lost
+   reports; it does not, and could not help for teammates regardless.
+
 ## Common Mistakes
 
 **❌ Too broad:** "Fix all the tests" - agent gets lost
 **✅ Specific:** "Fix agent-tool-abort.test.ts" - focused scope
+
+**❌ Named for no reason:** `name: "reviewer"` - report delivery becomes opt-in and a
+lost report is indistinguishable from a clean one
+**✅ Unnamed:** report returns automatically and leaves a transcript
 
 **❌ No context:** "Fix the race condition" - agent doesn't know where
 **✅ Context:** Paste the error messages and test names

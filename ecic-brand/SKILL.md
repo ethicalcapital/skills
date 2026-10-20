@@ -1,7 +1,7 @@
 ---
 name: ecic-brand
 description: >
-  ECIC brand voice, visual identity, and compliance enforcer for Ethical Capital Investment Collaborative.
+  ECIC brand voice, visual identity, and compliance enforcer for Ethical Capital.
   Use this skill whenever writing or reviewing any content for ECIC — emails, research articles, website
   copy, client communications, social posts, factsheets, adviser materials, or anything published under
   the Ethical Capital name. Also triggers on: "write this in our voice", "does this sound like us",
@@ -12,9 +12,8 @@ description: >
 
 # ECIC Brand Voice Skill
 
-This skill contains the complete brand, voice, compliance, and visual identity guide for Ethical Capital
-Investment Collaborative. All brand knowledge lives in `references/brand-guidelines.md`. Load it at the
-start of any content task.
+This skill contains the complete brand, voice, compliance, and visual identity guide for Ethical Capital.
+All brand knowledge lives in `references/brand-guidelines.md`. Load it at the start of any content task.
 
 ## When to use this skill
 

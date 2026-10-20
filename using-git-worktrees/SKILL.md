@@ -11,6 +11,15 @@ Ensure work happens in an isolated workspace. Prefer your platform's native work
 
 **Core principle:** Detect existing isolation first. Then use native tools. Then fall back to git. Never fight the harness.
 
+**Monocloud policy note (required):**
+- Branch name should include issue id (`<short-id>-<scope>`; legacy `ETH-xxxx-<scope>` still resolves).
+- Before first write run: `scripts/preflight/worktree-session-check.sh --ensure-issue --issue-title "<title>"` (kata only: reuses the branch's issue or an open one with that title, else creates one idempotently).
+- In monocloud, Step 1b is the worktree entrypoint, not raw `git worktree add`:
+  `python3 machine/worktree.py new <slug> [--only <dir>[,<dir>]]` (or
+  `mise run wt:new -- <slug>`) creates `../monocloud-<slug>` on `claude/<slug>`;
+  `--only` is a sparse checkout (~30M, not ~440M). For a fixed path/branch:
+  `python3 machine/worktree.py ensure --path <p> --branch <b>`.
+
 **Announce at start:** "I'm using the using-git-worktrees skill to set up an isolated workspace."
 
 ## Step 0: Detect Existing Isolation

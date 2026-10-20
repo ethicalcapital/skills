@@ -10,7 +10,7 @@ Generate branded ECIC PDFs from markdown or Typst source using the `report_write
 ## Quick Start
 
 ```bash
-cd /Users/srvo/dev/monocloud/report_writer
+cd report_writer
 
 # Markdown → PDF (most common)
 uv run python cli.py from-md INPUT.md -o OUTPUT.pdf
