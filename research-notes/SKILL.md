@@ -1,16 +1,46 @@
 ---
 name: research-notes
-description: >
-  Comprehensive research note management for the ECIC investment research corpus (~7,600 notes).
-  Use when: creating/editing/reviewing research notes, running the pipeline, managing the review
-  queue, doing identifier maintenance, reorganizing tickers by country, syncing markdown to DB,
-  or any question about how research notes work (format, frontmatter, screening, templates).
-  Triggers: "create a note for TICKER", "edit TICKER", "review TICKER", "run pipeline",
-  "what needs review", "sync research", "check identifiers", "research status".
-  Supersedes: research-reviewer, pipeline-runner (which remain as quick-reference shortcuts).
+description: Comprehensive research note management for the ECIC research corpus. Use when creating, editing, reviewing, or syncing research notes, running the pipeline, managing the review queue, or any question about how research notes work (format, frontmatter, screening, templates).
 ---
 
 # Research Note Management
+
+> **Notes are DB-only (kata x2cx, CIO 2026-10-14).** The note is the active
+> structured document (`research.note_documents` + `research.note_sections`),
+> read with `SELECT research.get_note_structured('<TICKER>', NULL)` and written
+> only by `research.save_note_structured` (pipeline, or
+> `research/scripts/apply_note_revision.py` for a curated revision).
+> `research/tickers/*.md` are stale pipeline scratch files and
+> `research.companies.research_note_body` is a stale pre-cutover snapshot:
+> do not read either as the current note, do not edit or commit `.md` notes,
+> and never write `research_note_body`. Any step below that reads, edits,
+> creates or commits `research/tickers/*.md` is superseded until this skill is
+> rewritten (kata x2cx; this skill's rewrite is part of kata sg4f).
+
+## When to Use
+
+Use when:
+- Creating or editing research notes that feed investment decisions.
+- Running note refresh/sync workflows tied to current pipeline contracts.
+- Checking note/process alignment before CIO review.
+
+Do not use when:
+- You only need pipeline execution status without note edits (use `pipeline-runner`).
+- You only need claim evidence consolidation for a single narrative (use `evidence-crawl`).
+
+## ADR Pointers
+
+- `docs/adr/2026-05-29-research-note-structured-rendering-canonical.md`
+- `docs/adr/2026-05-20-research-note-storage-markdown-canonical-jsonb-derived.md` (superseded context)
+
+## Non-Negotiable: Persist Source Artifacts to R2
+
+Research notes are defensible only when supporting sources are durably persisted to R2.
+
+Required:
+- Persist source materials used for assertions.
+- Preserve stable artifact references for claim traceability.
+- Treat missing artifact persistence as an execution defect.
 
 ## Persona
 
@@ -121,7 +151,7 @@ cp research/templates/ticker.md research/tickers/japan/7203.T.md
 
 After creating, regenerate the index:
 ```bash
-cd /Users/srvo/dev/monocloud/research/scripts && uv run generate_index.py
+cd research/scripts && uv run generate_index.py
 ```
 
 ### 2. Edit an Existing Note
@@ -144,35 +174,44 @@ cd /Users/srvo/dev/monocloud/research/scripts && uv run generate_index.py
 
 **Single ticker:**
 ```bash
-cd /Users/srvo/dev/monocloud/research/pipeline && unset PYTHONPATH && \
-  doppler run -- uv run python -m pipeline --ticker BSRR
+cd research/pipeline && unset PYTHONPATH && \
+  bws run -- uv run python -m pipeline --ticker BSRR
 ```
 
 **Full batch (by tier, with cost ceiling):**
 ```bash
-cd /Users/srvo/dev/monocloud/research/pipeline && unset PYTHONPATH && \
-  doppler run -- uv run python -m pipeline --by-tier --max-cost 20.0
+cd research/pipeline && unset PYTHONPATH && \
+  bws run -- uv run python -m pipeline --by-tier --max-cost 20.0
 ```
 
 **Resume a batch:**
 ```bash
-cd /Users/srvo/dev/monocloud/research/pipeline && unset PYTHONPATH && \
-  doppler run -- uv run python -m pipeline --by-tier --resume-from TICKER
+cd research/pipeline && unset PYTHONPATH && \
+  bws run -- uv run python -m pipeline --by-tier --resume-from TICKER
 ```
 
-**On-demand queue (rawls picks up within 5 min):**
+**On-demand queue:**
 ```bash
-cd /Users/srvo/dev/monocloud/tools/ecic && \
-  doppler run -- uv run ecic pipeline submit AAPL
-  doppler run -- uv run ecic pipeline submit AAPL --mode heavy --notes "re-check after Q4 miss"
-  doppler run -- uv run ecic pipeline status
+cd tools/ecic && \
+  bws run -- uv run ecic pipeline submit AAPL
+  bws run -- uv run ecic pipeline submit AAPL --mode heavy --notes "re-check after Q4 miss"
+
+cd . && \
+  bws run -- cargo run --quiet --manifest-path tools/port/Cargo.toml -- pipeline status
 ```
+
+Use Port for queue/pipeline status. The `ecic pipeline submit` mutation path is
+legacy headless compatibility until Port/internal-api submit/cancel/retry
+commands are fully migrated.
 
 **After pipeline completes:**
 1. Review batch summary
-2. Sync to DB: `cd tools/ecic && doppler run -- uv run ecic research sync`
-3. Commit: `git add research/tickers/ && git commit -m "research: pipeline batch $(date +%Y-%m-%d)"`
-4. Push: `git push`
+2. Commit: `git add research/tickers/ && git commit -m "research: pipeline batch $(date +%Y-%m-%d)"`
+3. Push: `git push`
+
+(Markdown→DB sync is retired — see "Sync Markdown ↔ Database" below. The
+pipeline's DB writes already go through `research.set_tick_score()`; there
+is no separate sync step to run.)
 
 **Key facts:**
 - Auto-syncs to DB + git commits every 25 notes during batch runs
@@ -188,11 +227,12 @@ Sorted by `ai_conviction` descending.
 
 ```bash
 # Find notes needing review
-cd /Users/srvo/dev/monocloud && grep -rl 'status: held' research/tickers/ | head -10
-
-# Validate MD-DB consistency
-cd tools/ecic && doppler run -- uv run ecic research sync --dry-run
+cd . && grep -rl 'status: held' research/tickers/ | head -10
 ```
+
+(MD-DB consistency validation via `ecic research sync --dry-run` is retired
+— see "Sync Markdown ↔ Database" below. The DB is canonical; there is
+nothing to reconcile a dry-run against.)
 
 **Quality checklist:**
 - [ ] Bottom Line section present and substantive
@@ -205,15 +245,17 @@ cd tools/ecic && doppler run -- uv run ecic research sync --dry-run
 
 After CIO review: set `reviewed_at` to today.
 
-### 5. Sync Markdown ↔ Database
+### 5. Sync Markdown ↔ Database — retired
 
-```bash
-cd /Users/srvo/dev/monocloud/tools/ecic && doppler run -- uv run ecic research sync
-# Dry-run: add --dry-run
-```
-
-This is the canonical sync. Updates `research.companies` and `research.securities` from
-frontmatter. Supabase PostgREST has a 1000-row default limit — the sync handles pagination.
+**Retired (ETH-egork, CIO decision 2026-07-14, recorded 2026-07-23).** The
+compat markdown→DB sync (`ecic research sync`, backed by
+`data-pipelines/research/sync_research_to_db.py`) is vestigial: the DB is
+canonical, and tick-score writes go through `research.set_tick_score()`
+directly. `ecic research sync` is blocked at the code level
+(`block_deprecated_research_write`) — do not attempt to run it. The script
+stays in-tree as an on-demand/manual tool only (already removed from cron +
+`infra-health` expected-intervals since ETH-1103); it is not part of any
+routine workflow.
 
 ### 6. Identifier Integrity (Quarterly)
 
@@ -224,21 +266,21 @@ batch-import errors). Run quarterly:
 
 ```bash
 # Watchdog check (read-only, fast)
-doppler run -- uv run scripts/exclusion_identity_watchdog.py
+bws run -- uv run scripts/exclusion_identity_watchdog.py
 
 # Full audit (generates Excel report)
-doppler run -- uv run scripts/audit_exclusion_identifiers.py
+bws run -- uv run scripts/audit_exclusion_identifiers.py
 
 # Fix wrong FIGIs (dry-run first)
-doppler run -- uv run scripts/fix_wrong_figis.py
-doppler run -- uv run scripts/fix_wrong_figis.py --write
+bws run -- uv run scripts/fix_wrong_figis.py
+bws run -- uv run scripts/fix_wrong_figis.py --write
 
 # Update stale names / NULL reused FIGIs
-doppler run -- uv run scripts/update_outdated_names.py
-doppler run -- uv run scripts/update_outdated_names.py --write
+bws run -- uv run scripts/update_outdated_names.py
+bws run -- uv run scripts/update_outdated_names.py --write
 ```
 
-**Key scripts** (all require `SUPABASE_DB_URL` via Doppler):
+**Key scripts** (all require `SUPABASE_DB_URL`, injected by `bws run --`):
 
 | Script | Purpose | Re-runnable |
 |--------|---------|-------------|
@@ -363,6 +405,13 @@ Load these as needed:
 
 ---
 
+## SEC / EDGAR access
+
+Never hand-roll SEC fetches. Use the shared client `monocloud_research.edgar`
+(CLI: `monocloud-edgar latest <TICKER>` / `filings` / `text`) — it enforces
+the canonical (cik, accession_number) identity contract and the shared SEC
+contact identity (ETH-h4e8j).
+
 ## Common Pitfalls
 
 1. **Never delete a research note** — set `status: excluded` and note in Revision Log
@@ -374,3 +423,16 @@ Load these as needed:
 7. **ISIN is contaminated** — never use ISIN alone for matching. Use FIGI.
 8. **Index is auto-generated** — never hand-edit `research/index.md`
 9. **All glob patterns use `.rglob("*.md")`** to include country subfolders
+
+## Failure Modes to Watch
+
+- Note updates proceed without durable source artifact persistence.
+- Structured-note expectations are bypassed by markdown-only assumptions.
+- Sync checks are skipped, leaving markdown/DB drift unresolved.
+
+## Deprecated (do not use)
+
+- `doppler run -- ...` in note workflows
+- `python -m pipeline` as default path
+- hardcoded paths under `/Users/srvo/dev/monocloud/...`
+- stale model/provider assumptions embedded in notes workflow docs

@@ -123,14 +123,14 @@ export default {
 }
 ```
 
-**Note**: Always wrap in `doppler run --` for local development:
+**Note**: Always wrap in `bws run --` for local development:
 
 ```bash
 # Workers
-doppler run -- npx wrangler deploy
+bws run -- npx wrangler deploy
 
 # CLI hook
-/bin/bash -c "cd /Users/srvo/dev/monocloud/workers/phone && doppler run -- npx wrangler deploy"
+/bin/bash -c "cd workers/phone && bws run -- npx wrangler deploy"
 ```
 
 ---
@@ -576,4 +576,9 @@ export default {
 - [ ] Request size < 128MB (chunk if needed)
 - [ ] Heavy work offloaded to queue/DO (CPU < 30s)
 - [ ] Tests pass: `npm test` or `uv run pytest`
-- [ ] Deploy: `doppler run -- npx wrangler deploy`
+- [ ] Deploy: `bws run -- npx wrangler deploy`
+
+## Deprecated (do not use)
+
+- `doppler run -- ...` wrappers — this repo uses `bws run --`
+- Hardcoded `/Users/...` paths — use repo-relative paths (worktrees)

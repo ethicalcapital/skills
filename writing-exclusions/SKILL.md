@@ -195,7 +195,7 @@ All INSERT statements must use `ON CONFLICT DO NOTHING` or `ON CONFLICT ... DO U
 
 > **3,324** active exclusion records across **2,388** companies, **56** sub-category codes.
 > Queried from `exclusions.taxonomy` + `exclusions.active_exclusions`.
-> **Stale if older than 12 months.** Re-run: `doppler run -- uv run scripts/refresh_exclusion_taxonomy.py`
+> **Stale if older than 12 months.** Re-run: `bws run -- uv run data-pipelines/monthly/refresh_exclusion_taxonomy.py`, then `python3 machine/agents/render.py --write`
 
 ### 2.1 Harm to Living Beings
 *Product-Based Exclusions*
@@ -327,3 +327,7 @@ All INSERT statements must use `ON CONFLICT DO NOTHING` or `ON CONFLICT ... DO U
 | `multiple_violations` | Multiple Violations | 0 | Companies where documented misconduct spans multiple categories or where the formal exclusion grounds — typically gov... |
 | `regulatory_failures` | Regulatory Violations | 39 | Companies with a documented pattern of regulatory violations across multiple domains — serial OSHA violations, repeat... |
 <!-- TAXONOMY_END -->
+
+## Deprecated (do not use)
+
+- `doppler run -- ...` refresh commands — this repo uses `bws run --`

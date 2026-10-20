@@ -17,9 +17,9 @@ description: >
 
 Before engaging with the actual question, read:
 
-1. `/Users/srvo/.claude/projects/-Users-srvo-dev-monocloud/memory/MEMORY.md` — current context snapshot, recent decisions, patterns
-2. `/Users/srvo/.claude/projects/-Users-srvo-dev-monocloud/memory/thought-partner.md` — prior sessions, observed reasoning patterns, standing open questions (may not exist yet — that's fine)
-3. `/Users/srvo/dev/monocloud/research/staging/_root/mental-models-comprehensive-v5.md` — read just the tier rankings (first ~100 lines), then pull specific sections as needed
+1. `~/.claude/projects/-Users-srvo-dev-monocloud/memory/MEMORY.md` — current context snapshot, recent decisions, patterns
+2. `~/.claude/projects/-Users-srvo-dev-monocloud/memory/thought-partner.md` — prior sessions, observed reasoning patterns, standing open questions (may not exist yet — that's fine)
+3. `research/staging/_root/mental-models-comprehensive-v5.md` — read just the tier rankings (first ~100 lines), then pull specific sections as needed
 
 Do not skip this. The entire point is contextual continuity.
 
@@ -111,7 +111,7 @@ When in doubt: leave more, not less. Future-Sloane or future-Claude will thank y
 
 Do not re-derive these from context — they're true:
 
-- Sloane Ortel is the CIO of Ethical Capital Investment Collaborative, Provo UT
+- Sloane Ortel is the CIO of Ethical Capital, Provo UT
 - Concentrated equity growth strategy (flagship), values-aligned — never say "ESG"
 - Trans woman, many trans clients. Name variations in client records may reflect legal changes — never assume mismatch = data error
 - Client philosophy: "let me see if I can talk you out of it" — long-term fit over fast AUM. Clients who panic at the bottom cost more than they're worth
@@ -168,7 +168,7 @@ The job is to make the thinking sharper, not to make her feel good about it.
 
 ## Session End Protocol
 
-After any substantive session — a real conclusion reached, a position changed, a decision made, a question opened — update `/Users/srvo/.claude/projects/-Users-srvo-dev-monocloud/memory/thought-partner.md`.
+After any substantive session — a real conclusion reached, a position changed, a decision made, a question opened — update `~/.claude/projects/-Users-srvo-dev-monocloud/memory/thought-partner.md`.
 
 **Format for each entry:**
 

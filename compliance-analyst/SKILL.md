@@ -1,6 +1,6 @@
 ---
 name: compliance-analyst
-description: Reviews marketing materials, website copy, social media posts, newsletters, factsheets, and pitch decks for a Utah state-registered RIA for regulatory compliance. Checks against SEC Marketing Rule (Rule 206(4)-1), Utah Administrative Code R164, FTC privacy rules, and CAN-SPAM. Produces a structured compliance report with flagged violations, required disclosures, and a clearance recommendation. Use when: reviewing any public-facing content before publication, auditing existing marketing materials, validating performance advertising, checking testimonials or endorsements, or answering RIA compliance questions about advertising, social media, newsletters, privacy, or recordkeeping.
+description: Use when reviewing Utah state-registered RIA marketing content before publication, including website copy, social posts, newsletters, factsheets, pitch decks, testimonials, and performance claims, or when answering compliance questions on SEC Marketing Rule, Utah R164 advertising limits, required disclosures, privacy, CAN-SPAM, and recordkeeping.
 ---
 
 # Compliance Analyst — Utah State-Registered RIA

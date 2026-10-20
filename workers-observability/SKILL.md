@@ -9,38 +9,38 @@ Replaces the remote `cloudflare-observability` and `cloudflare-bindings` MCP ser
 
 ## Prerequisites
 
-All commands require Doppler for credentials:
+All commands require BWS for credentials:
 ```bash
-doppler run -- <command>
+bws run -- <command>
 ```
 
 Key secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_KEY_MASTER` (can create tokens), `CF_ACCOUNT_ID` (if set).
 
 Account ID can be read from any worker's `wrangler.toml` or via:
 ```bash
-doppler run -- npx wrangler whoami
+bws run -- npx wrangler whoami
 ```
 
 ## Quick Health Check
 
 ### List all deployed workers
 ```bash
-doppler run -- npx wrangler deployments list --config workers/WORKER_NAME/wrangler.toml
+bws run -- npx wrangler deployments list --config workers/WORKER_NAME/wrangler.toml
 ```
 
 ### Tail live logs (structured JSON)
 ```bash
-doppler run -- npx wrangler tail WORKER_NAME --format json | head -50
+bws run -- npx wrangler tail WORKER_NAME --format json | head -50
 ```
 
 ### Tail with error filter
 ```bash
-doppler run -- npx wrangler tail WORKER_NAME --format json --status error | head -20
+bws run -- npx wrangler tail WORKER_NAME --format json --status error | head -20
 ```
 
 ### Check worker status via API
 ```bash
-doppler run -- bash -c 'curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+bws run -- bash -c 'curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
   "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/scripts" | jq ".result[] | {id, modified_on}"'
 ```
 
@@ -48,43 +48,43 @@ doppler run -- bash -c 'curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN"
 
 ### KV Namespaces — list all
 ```bash
-doppler run -- bash -c 'curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+bws run -- bash -c 'curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
   "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/storage/kv/namespaces" | jq ".result[] | {id, title}"'
 ```
 
 ### KV — list keys in a namespace
 ```bash
-doppler run -- bash -c 'curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+bws run -- bash -c 'curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
   "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/storage/kv/namespaces/NAMESPACE_ID/keys?limit=100" | jq ".result"'
 ```
 
 ### KV — read a specific key
 ```bash
-doppler run -- bash -c 'curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+bws run -- bash -c 'curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
   "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/storage/kv/namespaces/NAMESPACE_ID/values/KEY_NAME"'
 ```
 
 ### R2 Buckets — list all
 ```bash
-doppler run -- bash -c 'curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+bws run -- bash -c 'curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
   "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/r2/buckets" | jq ".result.buckets[] | {name, creation_date}"'
 ```
 
 ### R2 — list objects in a bucket (prefix filter)
 ```bash
-doppler run -- npx wrangler r2 object list BUCKET_NAME --prefix "some/prefix/"
+bws run -- npx wrangler r2 object list BUCKET_NAME --prefix "some/prefix/"
 ```
 
 ### Secrets — list (names only, never values)
 ```bash
-doppler run -- npx wrangler secret list --config workers/WORKER_NAME/wrangler.toml
+bws run -- npx wrangler secret list --config workers/WORKER_NAME/wrangler.toml
 ```
 
 ## Metrics & Analytics
 
 ### Worker analytics (last 24h)
 ```bash
-doppler run -- bash -c 'curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+bws run -- bash -c 'curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
   -H "Content-Type: application/json" \
   -d "{\"query\": \"{ viewer { accounts(filter: {accountTag: \\\"$CF_ACCOUNT_ID\\\"}) { workersInvocationsAdaptive(limit: 10, filter: {datetime_geq: \\\"$(date -u -v-1d +%Y-%m-%dT%H:%M:%SZ)\\\", datetime_leq: \\\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\\\"}, orderBy: [sum_requests_DESC]) { sum { requests errors subrequests } dimensions { scriptName status } } } } }\"}" \
   "https://api.cloudflare.com/client/v4/graphql" | jq ".data.viewer.accounts[0].workersInvocationsAdaptive"'
@@ -92,7 +92,7 @@ doppler run -- bash -c 'curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN"
 
 ### CPU time analytics
 ```bash
-doppler run -- bash -c 'curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+bws run -- bash -c 'curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
   -H "Content-Type: application/json" \
   -d "{\"query\": \"{ viewer { accounts(filter: {accountTag: \\\"$CF_ACCOUNT_ID\\\"}) { workersInvocationsAdaptive(limit: 10, filter: {datetime_geq: \\\"$(date -u -v-1d +%Y-%m-%dT%H:%M:%SZ)\\\"}) { quantiles { cpuTimeP50 cpuTimeP99 } dimensions { scriptName } } } } }\"}" \
   "https://api.cloudflare.com/client/v4/graphql" | jq ".data.viewer.accounts[0].workersInvocationsAdaptive"'
@@ -136,3 +136,7 @@ Current production workers in `workers/`:
    - Run worker analytics query to find hot workers
    - Check KV write volume (rate limiter can be write-heavy)
    - Look for retry loops in tail output
+
+## Deprecated (do not use)
+
+- `doppler run -- ...` wrappers — this repo uses `bws run --`

@@ -7,7 +7,7 @@ description: Use when user says "deploy forms", "deploy admin-api", "deploy WORK
 
 ## Deploy a Specific Worker
 ```bash
-cd /Users/srvo/dev/monocloud/workers/WORKER_NAME && doppler run -- npx wrangler deploy
+cd workers/WORKER_NAME && bws run -- npx wrangler deploy
 ```
 
 ## Active Workers
@@ -21,31 +21,38 @@ cd /Users/srvo/dev/monocloud/workers/WORKER_NAME && doppler run -- npx wrangler 
 1. Run tests: `cd workers/WORKER_NAME && npm test`
 2. Check for TypeScript errors: `npx tsc --noEmit`
 3. Review wrangler.toml for correct bindings
-4. Deploy: `doppler run -- npx wrangler deploy`
-5. Check logs: `doppler run -- npx wrangler tail`
+4. Deploy: `bws run -- npx wrangler deploy`
+5. Check logs: `bws run -- npx wrangler tail`
 
 ## Tail Logs After Deploy
 ```bash
-cd /Users/srvo/dev/monocloud/workers/WORKER_NAME && doppler run -- npx wrangler tail
+cd workers/WORKER_NAME && bws run -- npx wrangler tail
 ```
 
 ## Rollback
 ```bash
 # List recent deployments
-cd /Users/srvo/dev/monocloud/workers/WORKER_NAME && doppler run -- npx wrangler deployments list
+cd workers/WORKER_NAME && bws run -- npx wrangler deployments list
 # Rollback to previous
-cd /Users/srvo/dev/monocloud/workers/WORKER_NAME && doppler run -- npx wrangler rollback
+cd workers/WORKER_NAME && bws run -- npx wrangler rollback
 ```
 
 ## Website Deploy (Special Case)
 Website uses environment-specific deploys:
 ```bash
 # Staging (auto-deploys on push to main via CI)
-cd /Users/srvo/dev/monocloud/website && doppler run -- npx wrangler deploy
+cd website && bws run -- npx wrangler deploy
 
 # Production (manual)
-cd /Users/srvo/dev/monocloud/website && doppler run -- bash -c 'npx astro build && npx wrangler deploy --env production'
+cd website && bws run -- bash -c 'npx astro build && npx wrangler deploy --env production'
 ```
 
 ## For observability, binding inspection, metrics, and debugging
 Use the `workers-observability` skill.
+
+## Deprecated (do not use)
+
+- `doppler run -- ...` deploy/tail commands — this repo uses `bws run --`
+- Hardcoded `/Users/...` paths — every writing session runs in its own worktree,
+  so absolute paths are wrong exactly where this skill is used. Paths here are
+  relative to the repo root.

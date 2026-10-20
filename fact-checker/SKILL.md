@@ -1,20 +1,6 @@
 ---
 name: fact-checker
-description: |
-  Deep fact-checker + editor. Takes any text — research note, investment thesis, email, article, pasted paragraph — and returns a structured verdict on every claim, then proposes concrete inline edits (hyperlinks, footnotes, rewording, softening), and runs an interactive approval loop where Sloane approves/modifies/skips each edit and Claude makes the actual changes to the file.
-
-  Classifies each assertion as:
-  - FACT: specific, verifiable (numbers, names, dates, events, attributions, causal claims) → searched, verdicted, edit proposed
-  - OPINION: subjective judgment or prediction → flagged, no citation required, no edit
-  - HEURISTIC: arguable generalization ("usually", "tends to", "often") → flagged as defensible but not definitively citable
-
-  For FACT claims: searches in parallel via SearXNG (self-hosted) + EXA neural + WebSearch tool, then proposes one of: add_link, add_footnote, reword, soften, flag, or none.
-
-  Use when:
-  - Sloane says "fact-check this", "is this true", "check this note"
-  - Reviewing a research note, thesis, analyst report, or client communication for unsupported claims
-  - Auditing AI-generated content for hallucinations before publishing
-  - After drafting anything that makes factual assertions
+description: Use to classify claims, verify evidence, and apply approved claim-level edits while preserving author voice and auditability. Triggers on "fact-check this", "is this true", "check this note", or auditing AI-generated content for hallucinations before publishing.
 ---
 
 # Fact Checker
@@ -24,6 +10,26 @@ Five phases. Phases 1–4 run automatically; Phase 5 is the interactive loop wit
 **Tools used**: Read (to read source files), WebSearch (primary web search), WebFetch (fetch specific URLs), Edit (apply approved changes), Bash (run the SearXNG/EXA helper script for parallel API searches).
 
 ---
+
+## When to Use
+
+Use when:
+- Reviewing publishable or decision-relevant factual claims.
+- Auditing drafts for hallucination or unsupported assertions.
+- Preparing client-facing or compliance-sensitive text for release.
+
+Do not use when:
+- You only need broad editorial refinement without claim verification.
+- You need pipeline/job execution behavior checks.
+
+## ADR Pointers
+
+- `docs/adr/2026-05-29-internal-services-route-through-internal-api.md` (mutation/audit boundary mindset)
+- `docs/adr/2026-05-27-canonical-artifacts-activity-annotations-schema.md` (artifact governance context)
+
+## Non-Negotiable: Evidence Persistence to R2
+
+For decision-relevant or publishable factual claims, supporting source artifacts should be persisted to R2 (or explicitly linked to already-persisted artifacts) before final sign-off.
 
 ## Phase 1: Extract and classify claims
 
@@ -53,7 +59,7 @@ Use the `WebSearch` tool directly for each FACT claim. This is the simplest and 
 Run the helper script to fire parallel HTTP searches via SearXNG and EXA. This provides additional sources beyond what WebSearch finds.
 
 ```bash
-doppler run -- uv run python .claude/skills/fact-checker/scripts/fact_check.py \
+bws run -- uv run python .claude/skills/fact-checker/scripts/fact_check.py \
   --file path/to/document.md --json --verbose
 ```
 
@@ -77,7 +83,9 @@ This gives up to three independent search signals per claim:
 ### Search provider reference (for manual use if needed):
 
 ```
-SearXNG: GET {RAILWAY_SEARXNG_URL}/search?q={query}&format=json&language=en&pageno=1
+SearXNG: GET {SEARXNG_URL}/search?q={query}&format=json&language=en&pageno=1
+         SEARXNG_URL defaults to https://api.ec1c.com/api/v1/research/searxng
+         (internal-api, CF Access pair required; 503 until the VPC binding lands — ETH-ixivw 3/3)
 EXA:     POST https://api.exa.ai/search
          Headers: x-api-key: {EXA_API_KEY}
          Body: {"query": "...", "numResults": 6, "type": "neural", "useAutoprompt": true}
@@ -188,6 +196,18 @@ Applied 4 edits (2 links, 1 footnote, 1 reword) · Skipped 2 · File saved: path
 - **Do not apply any edit without explicit approval** — show first, apply only on A/approve
 - **Preserve Sloane's voice** — rewording must not change tone; invoke the `ecic-brand` skill if uncertain
 - **One edit per claim** — do not propose multiple alternatives; pick the best one
-- If `RAILWAY_SEARXNG_URL` is missing, skip SearXNG and note it; WebSearch + EXA still run
+- If SearXNG answers 503 / is unreachable (or `CF_ACCESS_CLIENT_ID`/`SECRET` are absent), skip it and note it; WebSearch + EXA still run
 - If `EXA_API_KEY` is missing, WebSearch + SearXNG still run; note EXA is unavailable
 - If WebSearch is unavailable, fall back to the helper script (SearXNG + EXA) only
+
+## Failure Modes to Watch
+
+- Claim edits are applied without explicit approval.
+- Sources are cited but not durably persisted/traceable for key claims.
+- Heuristic/opinion content is incorrectly "fact-corrected" as if factual.
+
+## Deprecated (do not use)
+
+- Legacy command examples that depend on `doppler run -- ...`
+- Tool references that assume non-Hermes-only editor primitives
+- Hardcoded local filesystem paths in examples
