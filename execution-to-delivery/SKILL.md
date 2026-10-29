@@ -28,7 +28,7 @@ Leaf steps are sequenced to prevent “started but not shipped” outcomes.
 
 ## Workflow
 
-1. **Plan.** State the objective, constraints and acceptance criteria on the kata ticket before touching code.
+1. **Plan.** State the objective, constraints and acceptance criteria on a Forgejo issue before touching code.
 2. **Execute.** Work the planned tasks in order, keeping evidence for each one.
 3. **Parallelize** (optional). Split independent subtasks when it shortens the cycle; dispatch subagents unnamed so their reports return inline.
 4. **Verify.** Confirm the output matches the requirements and actually runs.
